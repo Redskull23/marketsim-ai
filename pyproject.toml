@@ -1,0 +1,19 @@
+[project]
+name = "marketsim-ai"
+version = "0.1.0"
+description = "AI-enabled enterprise marketing simulation sandbox"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "streamlit",
+  "pandas",
+  "numpy",
+  "plotly",
+  "scikit-learn",
+  "joblib",
+  "openai",
+  "python-dotenv"
+]
+
+[tool.uv]
+package = false

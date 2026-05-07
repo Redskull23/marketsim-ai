@@ -1,0 +1,23 @@
+{
+  "model_version": "rf-enterprise-sandbox-v1",
+  "r2": 0.6476658566894749,
+  "mape": 0.14972910136921044,
+  "features": [
+    "region",
+    "product_category",
+    "channel",
+    "media_spend",
+    "promotion_depth",
+    "weather_index",
+    "seasonality",
+    "competitor_pressure",
+    "store_execution_score",
+    "inventory_availability",
+    "pricing_change"
+  ],
+  "targets": [
+    "revenue",
+    "unit_sales",
+    "margin"
+  ]
+}
