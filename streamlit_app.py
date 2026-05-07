@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -14,12 +15,25 @@ from services.drift import drift_summary
 from agents.analyst_agent import ask_analyst
 
 load_dotenv()
-if not os.getenv("OPENAI_API_KEY"):
-    st.error("OpenAI API key not configured. Please set OPENAI_API_KEY in your environment to enable AI")
-    st.stop()
-    
 st.set_page_config(page_title="MarketSIM AI", layout="wide")
 apply_style()
+
+MAX_CALLS = 5
+WINDOW_SECONDS = 3600
+
+app_password = st.secrets.get("APP_PASSWORD")
+if app_password:
+    password = st.text_input("Demo password", type="password")
+    if password != app_password:
+        st.info("Enter the demo password to continue.")
+        st.stop()
+
+openai_api_key = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
+openai_model = st.secrets.get("OPENAI_MODEL", os.getenv("OPENAI_MODEL", "gpt-4.1-mini"))
+
+if not openai_api_key:
+    st.error("OpenAI API key not configured. Add OPENAI_API_KEY to Streamlit secrets.")
+    st.stop()
 
 st.title("MarketSIM AI - Marketing Scenario Simulator")
 st.caption("AI assisted enterprise decision simulation for marketing, revenue, and margin planning.")
@@ -155,6 +169,29 @@ with tab4:
         "variance_table": variance.head(5).to_dict("records") if not variance.empty else [],
     }
     if st.button("Generate Analyst Readout"):
+        if "usage_log" not in st.session_state:
+            st.session_state.usage_log = []
+
+        now = time.time()
+        st.session_state.usage_log = [
+            t for t in st.session_state.usage_log
+            if now - t < WINDOW_SECONDS
+        ]
+
+        if len(st.session_state.usage_log) >= MAX_CALLS:
+            st.warning("You have reached the demo limit. Please try again later.")
+            st.stop()
+
+        st.session_state.usage_log.append(now)
+
         with st.spinner("Analyzing scenario context ......"):
-            answer = ask_analyst(question, scenario_context, metrics, drift)
+            answer = ask_analyst(
+                question,
+                scenario_context,
+                metrics,
+                drift,
+                api_key=openai_api_key,
+                model=openai_model,
+                max_output_tokens=400,
+            )
             st.markdown(answer)
